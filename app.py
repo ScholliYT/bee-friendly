@@ -1,11 +1,7 @@
 
 import streamlit as st
 import pandas as pd
-from sklearn import datasets
-from sklearn.ensemble import RandomForestClassifier
 import numpy as np
-from sklearn import manifold
-import pandas as pd
 import plotly.express as px
 
 
