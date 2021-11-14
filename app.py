@@ -27,6 +27,23 @@ def user_input_features(bees):
     features = pd.DataFrame(data, index=[0])
     return features
 
+def give_nearest_n(proj_3d, point, k):
+    n = proj_3d.shape[0]
+    data = proj_3d.copy()
+
+    dist_matrix = np.zeros((n, n))
+    for i in range(1,n):
+        dist = np.linalg.norm(data[:i,:]-data[i,:] , axis=1)
+        for id, d in enumerate(dist):
+            dist_matrix[i,id] = d
+
+    dist_matrix = dist_matrix + dist_matrix.T
+
+    nearest_n = np.zeros_like(dist_matrix, dtype=int)
+    for id, row in enumerate(dist_matrix):
+        nearest_n[id] = np.argsort(row)
+    nearest_n = nearest_n[:,1:]
+    return nearest_n[point, 0:k]
 
 def show_atom_number(mol, label):
     for atom in mol.GetAtoms():
@@ -71,9 +88,9 @@ def plot_3d(proj_3d, bees, slected_pesticide_idx):
 def streamlit_stuff():
 
   st.write("""
-  # Bee-Friendly Pesticide classifier
+  # Bee-Friendly Pesticide Classifier
 
-  This app predicts the risk of death for differnt Pesticides for bees!
+  This app predicts the risk of death for differnt pesticides for bees!
   """)
 
   st.sidebar.header('User Input Parameters')
@@ -105,6 +122,28 @@ def streamlit_stuff():
   m = inchi.MolFromInchi(slected_pesticide_row['inchi'])
   fig = Draw.MolToMPL(m)
   st.pyplot(fig)
+
+
+
+  # K-NN
+  st.subheader('Nearest Neighbours')
+
+  k = int(df['n_neighbours'].values[0])
+  nn = give_nearest_n(proj_3d, slected_pesticide_idx, k)
+  st.write(nn)
+
+  df_nn = bees.iloc[nn]
+  st.write(df_nn)
+
+  for n in nn:
+      # st.write(df_nn.loc[n])
+      st.subheader('Neighbour ' + df_nn.loc[n, 'name'] + ': ' + str(df_nn.loc[n, 'honeybees_contact_kill_risk']))
+      nn_mol = inchi.MolFromInchi(df_nn.loc[n, 'inchi'])
+      fig = Draw.MolToMPL(nn_mol)
+      st.pyplot(fig)
+
+
+
 
   # st.subheader('Class labels and their corresponding index number')
   # st.write(iris.target_names)
