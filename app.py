@@ -90,7 +90,8 @@ def streamlit_stuff():
   st.write("""
   # Bee-Friendly Pesticide Classifier
 
-  This app predicts the risk of death for differnt pesticides for bees!
+  This app lets you choose one pesticide from a collection of pesticides and predicts the risk of death for a bee if she encounters that specific pesticide.
+  We infer the risk by looking at the risk-rating of similar pesticides (from a chemical molecule structure perspective).
   """)
 
   st.sidebar.header('User Input Parameters')
