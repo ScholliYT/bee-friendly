@@ -4,6 +4,10 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
+from rdkit import Chem
+from rdkit.Chem import Draw
+from rdkit.Chem import inchi
+from rdkit import DataStructs
 
 our_color_discrete_map={
                   "unknown": "rgba(180, 180, 180, 0.24)",
@@ -24,8 +28,13 @@ def user_input_features(bees):
     return features
 
 
+def show_atom_number(mol, label):
+    for atom in mol.GetAtoms():
+        atom.SetProp(label, str(atom.GetIdx()+1))
+    return mol
+
 def get_labels(bees, slected_pesticide_idx):
-    y_full = bees['honeybees_contact_kill_risk'].cat.add_categories('unknown').fillna("unknown").values
+    y_full = bees['honeybees_contact_kill_risk'].values
     y_full = y_full.add_categories('watching')
     y_full[slected_pesticide_idx] = 'watching' # What point do you want to watch?
 
@@ -70,6 +79,7 @@ def streamlit_stuff():
   st.sidebar.header('User Input Parameters')
 
   bees = pd.read_pickle('scraped_molecules_honeybees_working.pickle')
+  bees['honeybees_contact_kill_risk'] = bees['honeybees_contact_kill_risk'].cat.add_categories('unknown').fillna("unknown")
   df = user_input_features(bees)
 
   st.subheader('User Input Parameters')
@@ -90,6 +100,11 @@ def streamlit_stuff():
 
   slected_pesticide_row = bees.iloc[slected_pesticide_idx, :]
   st.header("Info about " + slected_pesticide_row['name'])
+  st.write(f"This one is currently classified as {str(slected_pesticide_row['honeybees_contact_kill_risk'])}.")
+
+  m = inchi.MolFromInchi(slected_pesticide_row['inchi'])
+  fig = Draw.MolToMPL(m)
+  st.pyplot(fig)
 
   # st.subheader('Class labels and their corresponding index number')
   # st.write(iris.target_names)
